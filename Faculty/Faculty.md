@@ -76,4 +76,54 @@ It should also be noted that the admin login page on /admin/ can be bypassed wit
 poop
 ```
 
+### Admin Dashboard
+
+After poking around with burp proxy, I found some interesting results especially stemming from one particular piece of functionality: the pdf download button.
+
+As part of the POST request, it sends in a chunk of base64 encoded data.
+
+After fiddling around with it in the Burp decoder, I found out that it's encoded with base64 then url encoding (which I found some readable characters in) then url encoding again.
+
+From there, you can dig up some unique html.
+
+I used this website to beautify it: https://www.freeformatter.com/html-formatter.html
+
+The most interesting line to me was this guy:
+
+```
+<annotation file="/etc/passwd" content="/etc/passwd"  icon="Graph" title="Attached File: /etc/passwd" pos-x="195" />
+```
+
+Now using that payload and replacing the original payload with it (and exploiting other pages), we can find the following credentials:
+
+```
+gbyolo:Co.met06aci.dly53ro.per
+```
+
+That in turn allows me to login as the user. But the user flag isn't inside of gbyolo's home.
+
+### Securing the first flag
+
+Immediately I tried running sudo -l inside of it and after putting in gbyolo's password, I found that meta-git can run on sudo without a password.
+
+With this, I found this bug report online that helps me do RCE: https://hackerone.com/reports/728040
+
+So I ran the following: 
+
+```
+sudo -u developer meta-git clone 'piss | ls /home/developer'
+```
+
+That shows the following files are in the developer's directory:
+
+**sendmail.sh  user.txt**
+
+So now I'm going to cat it.
+
+```
+sudo -u developer meta-git clone 'piss | cat /home/developer/user.txt'
+```
+
+That gave me the first flag!!
+
 
