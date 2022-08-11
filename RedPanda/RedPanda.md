@@ -51,3 +51,35 @@ nc -lvnp 1234
 python3 JavaPayloadGenerator.py
 Linux Command to Convert: bash /tmp/shell.sh
 ```
+
+After securing a foothold, I was able to find a private key but haven't been able to quite use it yet so to log back into woodenk, I have to use the shell generation.
+
+## Root Flag
+
+### Linpeas
+
+So I first got my linpeas.sh script on the target via the same method I dropped the shell onto it.
+
+After running it, I found that it's vulnerable to CVE-2021-3560. This allows for the user to elevate privilages by creating a new local administrator.
+
+That being said, after trying to recreate the issue, I've gotten nothing back.
+
+### Securing SSH Creds
+
+After digging around, I found some SQL credentials from the /opt/panda_search/src/main/java/com/panda_search/htb/panda_search/MainController.java file.
+
+```
+conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/red_panda", "woodenk", "RedPandazRule");
+```
+
+**woodenk:RedPandazRule**
+
+SUCCESS!! Those credentials work!
+
+```
+ssh woodenk@10.10.11.170
+RedPandazRule
+```
+
+Now I won't have to redo the whole ugly SSTI to spawn a shell again!
+
