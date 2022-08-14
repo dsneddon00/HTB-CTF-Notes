@@ -163,3 +163,95 @@ docker run -p 80:80 --rm --name=upcloud upcloud
 Back to the webpage, there is also an upload page. This is another potential vector we could exploit.
 
 I would also like to point out that I also found a /console directory as well that requires a pin to use.
+
+So inside the source.zip we downloaded on the main page, there is a hidden .git directory.
+
+I next checked the logs and found that the Dockerfile had been modified.
+
+```
+git log --raw
+commit 2c67a52253c6fe1f206ad82ba747e43208e8cfd9 (HEAD -> public)
+Author: gituser <gituser@local>
+Date:   Thu Apr 28 13:55:55 2022 +0200
+
+    clean up dockerfile for production use
+
+:100644 100644 76c7768 5b0553c M        Dockerfile
+
+commit ee9d9f1ef9156c787d53074493e39ae364cd1e05
+Author: gituser <gituser@local>
+Date:   Thu Apr 28 13:45:17 2022 +0200
+
+    initial
+
+:000000 100644 0000000 76c7768 A        Dockerfile
+:000000 100644 0000000 e69de29 A        app/INSTALL.md
+:000000 100644 0000000 5c2ecc0 A        app/app/__init__.py
+:000000 100644 0000000 877f291 A        app/app/configuration.py
+:000000 100644 0000000 91e52af A        app/app/static/css/style.css
+:000000 100644 0000000 b335ef9 A        app/app/static/js/ie10-viewport-bug-workaround.js
+:000000 100644 0000000 401c744 A        app/app/static/js/script.js
+:000000 100644 0000000 259a9e2 A        app/app/static/vendor/bootstrap/css/bootstrap-grid.css
+:000000 100644 0000000 8661e3e A        app/app/static/vendor/bootstrap/css/bootstrap-grid.css.map
+:000000 100644 0000000 6533f31 A        app/app/static/vendor/bootstrap/css/bootstrap-grid.min.css
+:000000 100644 0000000 1b393db A        app/app/static/vendor/bootstrap/css/bootstrap-grid.min.css.map
+:000000 100644 0000000 91b0fc4 A        app/app/static/vendor/bootstrap/css/bootstrap-reboot.css
+:000000 100644 0000000 701f671 A        app/app/static/vendor/bootstrap/css/bootstrap-reboot.css.map
+:000000 100644 0000000 5308df6 A        app/app/static/vendor/bootstrap/css/bootstrap-reboot.min.css
+:000000 100644 0000000 b8551f7 A        app/app/static/vendor/bootstrap/css/bootstrap-reboot.min.css.map
+:000000 100644 0000000 8eac957 A        app/app/static/vendor/bootstrap/css/bootstrap.css
+:000000 100644 0000000 521afc5 A        app/app/static/vendor/bootstrap/css/bootstrap.css.map
+:000000 100644 0000000 86b6845 A        app/app/static/vendor/bootstrap/css/bootstrap.min.css
+:000000 100644 0000000 b939eb6 A        app/app/static/vendor/bootstrap/css/bootstrap.min.css.map
+:000000 100644 0000000 5344522 A        app/app/static/vendor/bootstrap/js/bootstrap.bundle.js
+:000000 100644 0000000 93cf73e A        app/app/static/vendor/bootstrap/js/bootstrap.bundle.js.map
+:000000 100644 0000000 78c533b A        app/app/static/vendor/bootstrap/js/bootstrap.bundle.min.js
+:000000 100644 0000000 54d2495 A        app/app/static/vendor/bootstrap/js/bootstrap.bundle.min.js.map
+:000000 100644 0000000 f1e68d3 A        app/app/static/vendor/bootstrap/js/bootstrap.js
+:000000 100644 0000000 e5f6ce9 A        app/app/static/vendor/bootstrap/js/bootstrap.js.map
+:000000 100644 0000000 e5a2429 A        app/app/static/vendor/bootstrap/js/bootstrap.min.js
+:000000 100644 0000000 757dbf3 A        app/app/static/vendor/bootstrap/js/bootstrap.min.js.map
+:000000 100644 0000000 e1e271c A        app/app/static/vendor/font-awesome/all.min.css
+:000000 100644 0000000 773ad95 A        app/app/static/vendor/jquery/jquery-3.4.1.js
+:000000 100644 0000000 a1c07fd A        app/app/static/vendor/jquery/jquery-3.4.1.min.js
+:000000 100644 0000000 e15edef A        app/app/static/vendor/jquery/jquery-3.4.1.min.map
+:000000 100644 0000000 a88adb2 A        app/app/static/vendor/popper/popper-utils.js
+:000000 100644 0000000 50e078a A        app/app/static/vendor/popper/popper-utils.js.map
+:000000 100644 0000000 f6560a1 A        app/app/static/vendor/popper/popper-utils.min.js
+:000000 100644 0000000 7fda3a9 A        app/app/static/vendor/popper/popper-utils.min.js.map
+:000000 100644 0000000 7fa913d A        app/app/static/vendor/popper/popper.js
+:000000 100644 0000000 d56fdda A        app/app/static/vendor/popper/popper.js.flow
+:000000 100644 0000000 9633363 A        app/app/static/vendor/popper/popper.js.map
+:000000 100644 0000000 8a17212 A        app/app/static/vendor/popper/popper.min.js
+:000000 100644 0000000 7107f61 A        app/app/static/vendor/popper/popper.min.js.map
+:000000 100644 0000000 29218c7 A        app/app/templates/index.html
+:000000 100644 0000000 316cd1d A        app/app/templates/success.html
+:000000 100644 0000000 fd19858 A        app/app/templates/upload.html
+:000000 100644 0000000 eebf49d A        app/app/utils.py
+:000000 100644 0000000 f2744c6 A        app/app/views.py
+:000000 100644 0000000 b64e36b A        app/run.py
+:000000 100755 0000000 1b76267 A        build-docker.sh
+:000000 100644 0000000 a14dd36 A        config/supervisord.conf
+jex@jex-kubuntu:~/HTB/Loot/OpenSource/.git$ git diffee9d9f1ef9156c787d53074493e39ae364cd1e05:Dockerfile HEAD:Dockerfile
+git: 'diffee9d9f1ef9156c787d53074493e39ae364cd1e05:Dockerfile' is not a git command. See 'git --help'.
+jex@jex-kubuntu:~/HTB/Loot/OpenSource/.git$ git diff ee9d9f1ef9156c787d53074493e39ae364cd1e05:Dockerfile HEAD:Dockerfile
+diff --git a/Dockerfile b/Dockerfile
+index 76c7768..5b0553c 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -29,7 +29,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
+ 
+ # Set mode
+ ENV MODE="PRODUCTION"
+-# ENV FLASK_DEBUG=1
+ 
+ # Run supervisord
+ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+```
+
+Now after doing some digging, we can create a PIN based on an md5 hash using this script: https://github.com/devdg/htb-opensource/blob/main/keygen.py
+
+The pin is: 866-968-626
+
+
+
